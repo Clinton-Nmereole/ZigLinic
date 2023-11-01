@@ -89,7 +89,7 @@ const Patient = struct {
     }
 };
 
-pub fn getPatientInfo(comptime T: type, patient: T) type { //This needs to be fixed. This causes a type error because you are not sure how to return an anonymoust struct
+pub fn getPatientInfo(comptime T: type, patient: T) type {
     return struct {
         .name = patient.name,
         .age = patient.age,
