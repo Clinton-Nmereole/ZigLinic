@@ -1,30 +1,27 @@
 const std = @import("std");
 const testing = std.testing;
+const rand = std.crypto.random;
 
-pub fn makeStruct(comptime T: type) type {
-    return @Type(T);
-}
-
-const MaritalStatus = enum {
+pub const MaritalStatus = enum {
     single,
     married,
     divorced,
     widowed,
 };
 
-const Gender = enum {
+pub const Gender = enum {
     male,
     female,
 };
 
-const BloodType = enum {
+pub const BloodType = enum {
     A,
     B,
     AB,
     O,
 };
 
-const Medication = struct {
+pub const Medication = struct {
     name: []const u8,
     dosage: []const u8,
     frequency: []const u8,
@@ -37,11 +34,12 @@ const Medication = struct {
     }
 };
 
-const MedicationPtr = *Medication;
+pub const MedicationPtr = *Medication;
 
-const MedicationList = std.ArrayList(Medication);
+pub const MedicationList = std.ArrayList(Medication);
 
-const Patient = struct {
+pub const Patient = struct {
+    id: u16,
     name: []const u8,
     age: u8,
     gender: Gender,
@@ -58,49 +56,39 @@ const Patient = struct {
     family_history: []const u8,
     current_medication: ?MedicationList,
 
-    pub fn getAllergies(self: Patient) []const u8 {
-        return self.allergies;
-    }
-
-    pub fn getFamilyHistory(self: Patient) []const u8 {
-        return self.family_history;
-    }
-
-    pub fn getMedicalHistory(self: Patient) []const u8 {
-        return self.medical_history;
-    }
-
-    pub fn getCurrentMedication(self: Patient) MedicationList {
-        return self.current_medication;
-    }
-
-    pub fn getBloodType(self: Patient) BloodType {
-        return self.blood_type;
-    }
-
-    pub fn getPatientInfo1(self: Patient) struct {} { //This needs to be fixed. This causes a type error because you are not sure how to return an anonymoust struct
-        return struct {
-            .name = self.name,
-            .age = self.age,
-            .phone = self.phone,
-            .email = self.email,
-            .address = self.address,
-        };
+    pub fn format(
+        patient: Patient,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try writer.writeAll("Patient{\n");
+        _ = try writer.print("\tid: {},\n", .{patient.id});
+        _ = try writer.print("\tname: {s},\n", .{patient.name});
+        _ = try writer.print("\tage: {},\n", .{patient.age});
+        _ = try writer.print("\tgender: {},\n", .{patient.gender});
+        _ = try writer.print("\taddress: {s},\n", .{patient.address});
+        _ = try writer.print("\tphone: {s},\n", .{patient.phone});
+        _ = try writer.print("\temail: {s},\n", .{patient.email});
+        _ = try writer.print("\tblood_type: {},\n", .{patient.blood_type});
+        _ = try writer.print("\theight: {},\n", .{patient.height});
+        _ = try writer.print("\tweight: {},\n", .{patient.weight});
+        _ = try writer.print("\tmarital_status: {},\n", .{patient.marital_status});
+        _ = try writer.print("\toccupation: {s},\n", .{patient.occupation});
+        _ = try writer.print("\tallergies: {s},\n", .{patient.allergies});
+        _ = try writer.print("\tmedical_history: {s},\n", .{patient.medical_history});
+        _ = try writer.print("\tfamily_history: {s},\n", .{patient.family_history});
+        _ = try writer.print("\tcurrent_medication: {?},\n", .{patient.current_medication});
+        _ = try writer.writeAll("}");
     }
 };
 
-pub fn getPatientInfo(comptime T: type, patient: T) type {
-    return struct {
-        .name = patient.name,
-        .age = patient.age,
-        .phone = patient.phone,
-        .email = patient.email,
-        .address = patient.address,
-    };
-}
-
 pub fn main() !void {
-    var patient: Patient = Patient{
+    //const patientid = rand.uintAtMost(u16, std.math.maxInt(u16));
+    var rand_impl = std.rand.DefaultPrng.init(0);
+    const num = rand_impl.random().uintAtMost(u16, std.math.maxInt(u16));
+    const patient: Patient = Patient{
+        .id = num,
         .name = "clinton",
         .age = 37,
         .gender = Gender.male,
@@ -118,20 +106,16 @@ pub fn main() !void {
         .current_medication = null,
     };
 
-    std.debug.print("Patient name: {s}\n", .{patient.name});
-    std.debug.print("Patient blood type: {any}\n", .{patient.getBloodType()});
-    std.debug.print("Patient info: {any}\n", .{getPatientInfo(Patient, patient)});
-    std.debug.print("Allergies: {s}\n", .{patient.getAllergies()});
-    std.debug.print("Family history: {s}\n", .{patient.getFamilyHistory()});
-    std.debug.print("Medical history: {s}\n", .{patient.getMedicalHistory()});
+    std.debug.print("{}\n", .{patient});
 }
 
-const PatientList = std.ArrayList(Patient);
+pub const PatientList = std.ArrayList(Patient);
 
-const PatientListPtr = *PatientList;
+pub const PatientListPtr = *PatientList;
 
 test "simple test" {
     var patient: Patient = Patient{
+        .id = rand.uintAtMost(u16, std.math.maxInt(u16)),
         .name = "clinton",
         .age = 37,
         .gender = Gender.male,
